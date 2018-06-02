@@ -112,20 +112,26 @@ def read_image_list_file(category, is_test):
 
         if li_num >= end_num and is_test == True:
             break
-
-        flag = line.split('1 ', 41)[20]  # get the label for gender
+        
+        '''
+        # get the label for gender,
+        在看第21个属性即male属性是1还是-1
+        line.split('1 ', 41)是用1加一个空格来做分隔符，共分割出41个内容，分成的效果如下
+        ['001201.jpg ', '-', ' ', '-', '-', '-', '-', '-', ' ', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', ' ', '-', '-', '-', ' ', ' ', '-', '-', '-', '-', '-', '-', ' ', '-', '-', '-', '-', '-', ' ', ' 1\n']
+        '''
+        flag = line.split('1 ', 41)[20]  
         file_name = line.split(' ', 1)[0]
 
         # print flag
         if flag == ' ':
 
-            list_label.append(1)
+            list_label.append(1)   #代表男性
 
         else:
 
-            list_label.append(0)
+            list_label.append(0)   #代表女性
 
-        list_image.append(path + file_name)
+        list_image.append(path + file_name)   #list_image中存的是一系列的图片id,是字符串形式‘/*/*/*/001201.jpg'
 
         li_num += 1
 
