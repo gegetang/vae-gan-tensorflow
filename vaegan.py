@@ -20,19 +20,20 @@ class vaegan(object):
         self.max_iters = max_iters
         self.repeat_num = repeat
         self.saved_model_path = model_path
-        self.data_ob = data_ob
-        self.latent_dim = latent_dim
+        self.data_ob = data_ob 
+        self.latent_dim = latent_dim    #128
         self.sample_path = sample_path
         self.log_dir = log_dir
         self.learn_rate_init = learnrate_init
         self.log_vars = []
 
         self.channel = 3
-        self.output_size = data_ob.image_size
+        self.output_size = data_ob.image_size   #data_ob.image_size=64
         self.images = tf.placeholder(tf.float32, [self.batch_size, self.output_size, self.output_size, self.channel])
         self.ep = tf.random_normal(shape=[self.batch_size, self.latent_dim])
         self.zp = tf.random_normal(shape=[self.batch_size, self.latent_dim])
-
+        
+        #下面这部分有点屌屌的
         self.dataset = tf.data.Dataset.from_tensor_slices(
             convert_to_tensor(self.data_ob.train_data_list, dtype=tf.string))
         self.dataset = self.dataset.map(lambda filename : tuple(tf.py_func(self._read_by_function,
@@ -46,7 +47,7 @@ class vaegan(object):
 
     def build_model_vaegan(self):
 
-        self.z_mean, self.z_sigm = self.Encode(self.images)
+        self.z_mean, self.z_sigm = self.Encode(self.images)   #Encode获得z_mean, z_sigma
         self.z_x = tf.add(self.z_mean, tf.sqrt(tf.exp(self.z_sigm))*self.ep)
         self.x_tilde = self.generate(self.z_x, reuse=False)
         self.l_x_tilde, self.De_pro_tilde = self.discriminate(self.x_tilde)
@@ -65,7 +66,7 @@ class vaegan(object):
         self.D_real_loss = tf.reduce_mean(
             tf.nn.sigmoid_cross_entropy_with_logits(labels=tf.ones_like(self.D_pro_logits) - d_scale_factor, logits=self.D_pro_logits))
         self.D_tilde_loss = tf.reduce_mean(
-            tf.nn.sigmoid_cross_entropy_with_logits(labels=tf.zeros_like(self.De_pro_tilde), logits=self.De_pro_tilde))
+            tf.nn.sigmoid_cross_entropy_with_logits(labels=tf.zeros_like(self.De_pro_tilde), logits=self.De_pro_tilde))   
 
         # G loss
         self.G_fake_loss = tf.reduce_mean(
@@ -249,7 +250,7 @@ class vaegan(object):
             conv1 = tf.nn.relu(batch_normal(conv2d(x, output_dim=64, name='e_c1'), scope='e_bn1'))
             conv2 = tf.nn.relu(batch_normal(conv2d(conv1, output_dim=128, name='e_c2'), scope='e_bn2'))
             conv3 = tf.nn.relu(batch_normal(conv2d(conv2 , output_dim=256, name='e_c3'), scope='e_bn3'))
-            conv3 = tf.reshape(conv3, [self.batch_size, 256 * 8 * 8])
+            conv3 = tf.reshape(conv3, [self.batch_size, 256 * 8 * 8])   #256 * 8 * 8中的8是因为conv了3次的原因？
             fc1 = tf.nn.relu(batch_normal(fully_connect(conv3, output_size=1024, scope='e_f1'), scope='e_bn4'))
             z_mean = fully_connect(fc1 , output_size=128, scope='e_f2')
             z_sigma = fully_connect(fc1, output_size=128, scope='e_f3')
@@ -288,14 +289,3 @@ class vaegan(object):
                            is_grayscale=False)
         real_images = np.array(array)
         return real_images
-
-
-
-
-
-
-
-
-
-
-
